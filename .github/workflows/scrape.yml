@@ -1,0 +1,39 @@
+name: Scrape Solana Tokens
+
+# Saatlik çalışır + manuel tetikleme imkanı.
+on:
+  schedule:
+    - cron: '0 * * * *' # her saat başı (UTC)
+  workflow_dispatch: {}
+
+# Aynı anda tek bir tarama çalışsın (üst üste binmeyi engelle).
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: scraper
+        # package-lock.json varsa ci, yoksa install (ilk kurulum kolaylığı).
+        run: npm ci || npm install
+
+      - name: Run scraper
+        working-directory: scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          # Opsiyonel eşik geçersiz kılmaları (Secrets/Variables olarak ekleyin):
+          # MIN_LIQUIDITY_USD: ${{ vars.MIN_LIQUIDITY_USD }}
+        run: npm run scrape
