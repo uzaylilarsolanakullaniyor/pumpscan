@@ -30,11 +30,11 @@ function passesThresholds(pair) {
   if ((pair.liquidityUsd || 0) < t.minLiquidityUsd) return false;
   if ((pair.volume24h || 0) < t.minVolume24h) return false;
 
-  if (pair.pairCreatedAt) {
+  // Yaş filtresi yalnızca maxAgeDays > 0 ise uygulanır (0 = sınır yok).
+  if (t.maxAgeDays > 0 && pair.pairCreatedAt) {
     const ageDays = (Date.now() - pair.pairCreatedAt.getTime()) / 86400000;
     if (ageDays > t.maxAgeDays) return false;
   }
-  // pairCreatedAt yoksa yaşı bilinmiyor → elemeyiz (diğer eşikler korur).
   return true;
 }
 

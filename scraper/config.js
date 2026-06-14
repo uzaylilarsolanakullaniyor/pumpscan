@@ -18,7 +18,8 @@ module.exports = {
   thresholds: {
     minLiquidityUsd: envNumber('MIN_LIQUIDITY_USD', 5000),
     minVolume24h: envNumber('MIN_VOLUME_24H', 10000),
-    maxAgeDays: envNumber('MAX_AGE_DAYS', 30),
+    // 0 = yaş sınırı yok (her yaştaki token listeye girebilir).
+    maxAgeDays: envNumber('MAX_AGE_DAYS', 0),
   },
 
   // --- Skor ağırlıkları (her grup kendi içinde toplanır) --------------------
