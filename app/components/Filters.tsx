@@ -1,6 +1,6 @@
 'use client';
 
-// Minimum likidite / hacim / güvenlik skoru filtre kontrolleri.
+// Minimum liquidity / volume / safety-score filter controls.
 
 export interface FilterState {
   minLiquidity: number;
@@ -25,8 +25,8 @@ function Field({
   return (
     <label className="flex flex-1 flex-col gap-1">
       <span className="flex items-baseline justify-between">
-        <span className="text-xs font-medium text-slate-300">{label}</span>
-        <span className="text-xs tabular-nums text-slate-500">{hint}</span>
+        <span className="text-xs font-medium text-slate-200">{label}</span>
+        <span className="text-xs tabular-nums text-slate-400">{hint}</span>
       </span>
       {children}
     </label>
@@ -35,10 +35,10 @@ function Field({
 
 export default function Filters({ value, onChange }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-4 rounded-lg border border-border bg-surface p-4 sm:grid-cols-3">
+    <div className="glass glass-sheen grid grid-cols-1 gap-4 rounded-2xl p-4 sm:grid-cols-3">
       <Field
-        label="Min. Likidite"
-        hint={`$${value.minLiquidity.toLocaleString('tr-TR')}`}
+        label="Min. Liquidity"
+        hint={`$${value.minLiquidity.toLocaleString('en-US')}`}
       >
         <input
           type="range"
@@ -49,13 +49,13 @@ export default function Filters({ value, onChange }: Props) {
           onChange={(e) =>
             onChange({ ...value, minLiquidity: Number(e.target.value) })
           }
-          className="accent-emerald-500"
+          className="accent-emerald-400"
         />
       </Field>
 
       <Field
-        label="Min. 24s Hacim"
-        hint={`$${value.minVolume.toLocaleString('tr-TR')}`}
+        label="Min. 24h Volume"
+        hint={`$${value.minVolume.toLocaleString('en-US')}`}
       >
         <input
           type="range"
@@ -66,11 +66,11 @@ export default function Filters({ value, onChange }: Props) {
           onChange={(e) =>
             onChange({ ...value, minVolume: Number(e.target.value) })
           }
-          className="accent-emerald-500"
+          className="accent-emerald-400"
         />
       </Field>
 
-      <Field label="Min. Güvenlik Skoru" hint={`${value.minSafety}`}>
+      <Field label="Min. Safety Score" hint={`${value.minSafety}`}>
         <input
           type="range"
           min={0}
@@ -80,7 +80,7 @@ export default function Filters({ value, onChange }: Props) {
           onChange={(e) =>
             onChange({ ...value, minSafety: Number(e.target.value) })
           }
-          className="accent-emerald-500"
+          className="accent-emerald-400"
         />
       </Field>
     </div>

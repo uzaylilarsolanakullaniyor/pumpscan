@@ -8,9 +8,41 @@
 
 html,
 body {
-  background-color: #0b0e14;
-  color: #e5e9f0;
+  background-color: #05060a;
+  color: #e8ecf4;
   -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Liquid-glass yüzey: yarı saydam + arka plan bulanıklığı + ince kenar */
+  .glass {
+    @apply border border-white/10 bg-white/[0.04] shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-xl backdrop-saturate-150;
+  }
+  .glass-strong {
+    @apply border border-white/15 bg-white/[0.07] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-150;
+  }
+  /* Camın üstündeki ince ışık çizgisi (highlight) */
+  .glass-sheen {
+    position: relative;
+  }
+  .glass-sheen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0) 40%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 }
 
 /* İnce, koyu temaya uygun scrollbar */
@@ -19,8 +51,11 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a3346;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 ::-webkit-scrollbar-track {
   background: transparent;

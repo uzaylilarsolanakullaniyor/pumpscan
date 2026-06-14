@@ -1,4 +1,4 @@
-# Solana Token Tarayıcı Dashboard
+# PumpScan — Solana Token Tarayıcı
 
 DexScreener ve RugCheck **public** API'lerini kullanarak Solana tokenlarını
 hacim/momentum ve güvenlik kriterlerine göre tarayan, filtreleyen ve listeleyen

@@ -17,22 +17,22 @@ interface Props {
   sortKey: SortKey;
   sortDir: SortDir;
   onSort: (key: SortKey) => void;
-  showSafetyWarning: boolean; // "Yüksek Momentum" sekmesinde düşük güvenliğe uyarı
+  showSafetyWarning: boolean; // warn on low safety in the "High Momentum" tab
   safeThreshold: number;
 }
 
-// Sıralanabilir kolon tanımları (mobil kartta da etiket olarak kullanılır).
+// Sortable column definitions (also used as labels in the mobile card view).
 const COLUMNS: { key: SortKey; label: string; align: 'left' | 'right' }[] = [
   { key: 'symbol', label: 'Token', align: 'left' },
-  { key: 'price_usd', label: 'Fiyat', align: 'right' },
-  { key: 'price_change_1h', label: '1s', align: 'right' },
-  { key: 'price_change_6h', label: '6s', align: 'right' },
-  { key: 'price_change_24h', label: '24s', align: 'right' },
-  { key: 'volume_24h', label: 'Hacim', align: 'right' },
-  { key: 'liquidity_usd', label: 'Likidite', align: 'right' },
+  { key: 'price_usd', label: 'Price', align: 'right' },
+  { key: 'price_change_1h', label: '1h', align: 'right' },
+  { key: 'price_change_6h', label: '6h', align: 'right' },
+  { key: 'price_change_24h', label: '24h', align: 'right' },
+  { key: 'volume_24h', label: 'Volume', align: 'right' },
+  { key: 'liquidity_usd', label: 'Liquidity', align: 'right' },
   { key: 'buy_sell_ratio', label: 'B/S', align: 'right' },
-  { key: 'age', label: 'Yaş', align: 'right' },
-  { key: 'safety_score', label: 'Güvenlik', align: 'right' },
+  { key: 'age', label: 'Age', align: 'right' },
+  { key: 'safety_score', label: 'Safety', align: 'right' },
   { key: 'momentum_score', label: 'Momentum', align: 'right' },
 ];
 
@@ -41,7 +41,7 @@ function SortArrow({ active, dir }: { active: boolean; dir: SortDir }) {
   return <span className="text-emerald-400">{dir === 'desc' ? '↓' : '↑'}</span>;
 }
 
-// İşaretli yüzdeyi renkli gösterir.
+// Renders a signed percentage with color.
 function PctCell({ value }: { value: number | null }) {
   const color =
     value === null
@@ -64,21 +64,21 @@ export default function TokenTable({
 }: Props) {
   return (
     <>
-      {/* ---- Masaüstü tablo ---- */}
-      <div className="hidden overflow-x-auto rounded-lg border border-border md:block">
+      {/* ---- Desktop table ---- */}
+      <div className="glass glass-sheen hidden overflow-x-auto rounded-2xl md:block">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface text-xs uppercase tracking-wide text-slate-400">
+            <tr className="border-b border-white/10 text-xs uppercase tracking-wide text-slate-400">
               {COLUMNS.map((col) => (
                 <th
                   key={col.key}
-                  className={`whitespace-nowrap px-3 py-2.5 font-medium ${
+                  className={`whitespace-nowrap px-3 py-3 font-medium ${
                     col.align === 'right' ? 'text-right' : 'text-left'
                   }`}
                 >
                   <button
                     onClick={() => onSort(col.key)}
-                    className={`inline-flex items-center gap-1 hover:text-slate-200 ${
+                    className={`inline-flex items-center gap-1 hover:text-white ${
                       col.align === 'right' ? 'flex-row-reverse' : ''
                     }`}
                   >
@@ -87,7 +87,7 @@ export default function TokenTable({
                   </button>
                 </th>
               ))}
-              <th className="px-3 py-2.5 text-right font-medium">24s Trend</th>
+              <th className="px-3 py-3 text-right font-medium">24h Trend</th>
             </tr>
           </thead>
           <tbody>
@@ -97,9 +97,9 @@ export default function TokenTable({
               return (
                 <tr
                   key={t.mint_address}
-                  className="border-b border-border/50 transition-colors hover:bg-surface/60"
+                  className="border-b border-white/5 transition-colors hover:bg-white/5"
                 >
-                  {/* Token adı/sembol → DexScreener linki */}
+                  {/* Token name/symbol → DexScreener link */}
                   <td className="px-3 py-2.5">
                     <a
                       href={t.dex_url ?? '#'}
@@ -111,10 +111,10 @@ export default function TokenTable({
                         {t.symbol ?? '?'}
                         {showSafetyWarning && lowSafety && (
                           <span
-                            title="Düşük güvenlik skoru"
+                            title="Low safety score"
                             className="rounded bg-red-500/15 px-1 text-[10px] font-bold text-red-300 ring-1 ring-inset ring-red-500/30"
                           >
-                            ⚠ RİSK
+                            ⚠ RISK
                           </span>
                         )}
                       </span>
@@ -165,7 +165,7 @@ export default function TokenTable({
         </table>
       </div>
 
-      {/* ---- Mobil kart görünümü ---- */}
+      {/* ---- Mobile card view ---- */}
       <div className="space-y-3 md:hidden">
         {tokens.map((t) => {
           const lowSafety = (t.safety_score ?? 0) < safeThreshold;
@@ -176,7 +176,7 @@ export default function TokenTable({
               href={t.dex_url ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="block rounded-lg border border-border bg-surface p-3"
+              className="glass glass-sheen block rounded-2xl p-3"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -184,7 +184,7 @@ export default function TokenTable({
                     {t.symbol ?? '?'}
                     {showSafetyWarning && lowSafety && (
                       <span className="rounded bg-red-500/15 px-1 text-[10px] font-bold text-red-300 ring-1 ring-inset ring-red-500/30">
-                        ⚠ RİSK
+                        ⚠ RISK
                       </span>
                     )}
                   </div>
@@ -201,20 +201,20 @@ export default function TokenTable({
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                <Stat label="1s">
+                <Stat label="1h">
                   <PctCell value={t.price_change_1h} />
                 </Stat>
-                <Stat label="6s">
+                <Stat label="6h">
                   <PctCell value={t.price_change_6h} />
                 </Stat>
-                <Stat label="24s">
+                <Stat label="24h">
                   <PctCell value={t.price_change_24h} />
                 </Stat>
-                <Stat label="Hacim">{formatUsd(t.volume_24h)}</Stat>
-                <Stat label="Likidite">{formatUsd(t.liquidity_usd)}</Stat>
+                <Stat label="Volume">{formatUsd(t.volume_24h)}</Stat>
+                <Stat label="Liquidity">{formatUsd(t.liquidity_usd)}</Stat>
                 <Stat label="B/S">{formatRatio(ratio)}</Stat>
-                <Stat label="Yaş">{formatAge(t.pair_created_at)}</Stat>
-                <Stat label="Güvenlik">
+                <Stat label="Age">{formatAge(t.pair_created_at)}</Stat>
+                <Stat label="Safety">
                   <ScoreBadge score={t.safety_score} variant="safety" />
                 </Stat>
                 <Stat label="Momentum">

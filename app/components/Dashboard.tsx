@@ -10,7 +10,7 @@ interface Props {
   tokens: TokenWithHistory[];
 }
 
-const SAFE_THRESHOLD = 70; // "Trend & Güvenli" sekmesi eşiği
+const SAFE_THRESHOLD = 70; // "Trending & Safe" tab threshold
 
 export default function Dashboard({ tokens }: Props) {
   const [view, setView] = useState<ViewMode>('safe');
@@ -22,7 +22,7 @@ export default function Dashboard({ tokens }: Props) {
     minSafety: 0,
   });
 
-  // Kolon başlığına tıklama: aynı kolon → yön değiştir, farklı → o kolonda desc.
+  // Header click: same column → toggle direction, different → sort desc on it.
   function handleSort(key: SortKey) {
     if (key === sortKey) {
       setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
@@ -32,13 +32,13 @@ export default function Dashboard({ tokens }: Props) {
     }
   }
 
-  // Filtreleme + sekme + sıralama tamamen client-side; tekrar API çağrısı yok.
+  // Filtering + tab + sorting are fully client-side; no extra API calls.
   const visible = useMemo(() => {
     let rows = tokens.filter((t) => {
       if ((t.liquidity_usd ?? 0) < filters.minLiquidity) return false;
       if ((t.volume_24h ?? 0) < filters.minVolume) return false;
       if ((t.safety_score ?? 0) < filters.minSafety) return false;
-      // "Trend & Güvenli" sekmesi: yalnızca güvenli tokenlar.
+      // "Trending & Safe" tab: only safe tokens.
       if (view === 'safe' && (t.safety_score ?? 0) < SAFE_THRESHOLD) return false;
       return true;
     });
@@ -53,19 +53,19 @@ export default function Dashboard({ tokens }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Sekmeler */}
+      {/* Tabs */}
       <div className="flex items-center gap-2">
         <TabButton active={view === 'safe'} onClick={() => setView('safe')}>
-          Trend &amp; Güvenli
+          Trending &amp; Safe
         </TabButton>
         <TabButton
           active={view === 'momentum'}
           onClick={() => setView('momentum')}
         >
-          Yüksek Momentum
+          High Momentum
         </TabButton>
-        <span className="ml-auto text-xs text-slate-500">
-          {visible.length} token
+        <span className="ml-auto text-xs text-slate-400">
+          {visible.length} tokens
         </span>
       </div>
 
@@ -95,10 +95,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+      className={`glass-sheen rounded-xl px-4 py-2 text-sm font-medium transition-all ${
         active
-          ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30'
-          : 'bg-surface text-slate-400 ring-1 ring-inset ring-border hover:text-slate-200'
+          ? 'glass-strong text-emerald-200 ring-1 ring-inset ring-emerald-400/30'
+          : 'glass text-slate-300 hover:text-white'
       }`}
     >
       {children}
@@ -106,7 +106,7 @@ function TabButton({
   );
 }
 
-// İki token'ı verilen sıralama anahtarına göre kıyaslar.
+// Compare two tokens by the given sort key.
 function compare(a: TokenWithHistory, b: TokenWithHistory, key: SortKey): number {
   switch (key) {
     case 'symbol':
@@ -117,13 +117,13 @@ function compare(a: TokenWithHistory, b: TokenWithHistory, key: SortKey): number
       return ra - rb;
     }
     case 'age': {
-      // Daha yeni = daha büyük created timestamp.
+      // Newer = larger created timestamp.
       const ta = a.pair_created_at ? new Date(a.pair_created_at).getTime() : 0;
       const tb = b.pair_created_at ? new Date(b.pair_created_at).getTime() : 0;
       return ta - tb;
     }
     default: {
-      // Bu noktada `key` yalnızca sayısal DB kolonlarına denk gelir.
+      // At this point `key` only maps to numeric DB columns.
       const k = key as keyof TokenWithHistory;
       const va = (a[k] as number | null) ?? -Infinity;
       const vb = (b[k] as number | null) ?? -Infinity;

@@ -3,7 +3,7 @@ import { TokenRow, SnapshotPoint, TokenWithHistory } from '@/lib/types';
 import { formatRelativeTime } from '@/lib/format';
 import Dashboard from '@/components/Dashboard';
 
-// Veriyi her istekte tazele (cron saatlik yazıyor; 60sn ISR yeterli).
+// Refresh data on each request (cron writes hourly; 60s ISR is plenty).
 export const revalidate = 60;
 
 async function getData(): Promise<{
@@ -12,7 +12,7 @@ async function getData(): Promise<{
 }> {
   const supabase = createSupabaseServer();
 
-  // 1) Tokenları çek (momentum'a göre sıralı; üst sınır koy).
+  // 1) Fetch tokens (sorted by momentum; capped).
   const { data: tokenData, error: tokenError } = await supabase
     .from('tokens')
     .select('*')
@@ -20,11 +20,11 @@ async function getData(): Promise<{
     .limit(300);
 
   if (tokenError) {
-    throw new Error(`tokens okunamadı: ${tokenError.message}`);
+    throw new Error(`Failed to read tokens: ${tokenError.message}`);
   }
   const tokens = (tokenData ?? []) as TokenRow[];
 
-  // 2) Bu tokenlar için son 24s snapshot'ları tek sorguda çek (sparkline).
+  // 2) Fetch last 24h snapshots for these tokens in one query (sparkline).
   const mints = tokens.map((t) => t.mint_address);
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
 
@@ -38,8 +38,8 @@ async function getData(): Promise<{
       .order('recorded_at', { ascending: true });
 
     if (snapError) {
-      // Sparkline kritik değil; hata olursa boş geç.
-      console.warn('snapshots okunamadı:', snapError.message);
+      // Sparkline is non-critical; continue empty on error.
+      console.warn('Failed to read snapshots:', snapError.message);
     } else {
       for (const row of (snapData ?? []) as SnapshotPoint[]) {
         if (row.price_usd === null) continue;
@@ -55,7 +55,7 @@ async function getData(): Promise<{
     history: historyByMint.get(t.mint_address) ?? [],
   }));
 
-  // En son güncellenme zamanı (header için).
+  // Most recent update time (for the header).
   const lastUpdated =
     tokens.reduce<string | null>((acc, t) => {
       if (!t.updated_at) return acc;
@@ -76,54 +76,55 @@ export default async function HomePage() {
     tokens = data.tokens;
     lastUpdated = data.lastUpdated;
   } catch (err) {
-    error = err instanceof Error ? err.message : 'Bilinmeyen hata';
+    error = err instanceof Error ? err.message : 'Unknown error';
   }
 
   return (
     <main className="mx-auto max-w-[1400px] px-3 py-6 sm:px-6">
       <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">
-            Solana Token Tarayıcı
+          <h1 className="bg-gradient-to-r from-violet-300 via-white to-emerald-300 bg-clip-text text-3xl font-extrabold tracking-tight text-transparent">
+            PumpScan
           </h1>
           <p className="text-sm text-slate-400">
-            DexScreener + RugCheck · hacim, momentum ve güvenlik analizi
+            Solana token scanner · volume, momentum &amp; safety analysis
           </p>
         </div>
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-slate-400">
           {lastUpdated ? (
-            <span>Son güncelleme: {formatRelativeTime(lastUpdated)}</span>
+            <span className="glass glass-sheen rounded-full px-3 py-1.5">
+              Last updated: {formatRelativeTime(lastUpdated)}
+            </span>
           ) : (
-            <span>Henüz veri yok</span>
+            <span>No data yet</span>
           )}
         </div>
       </header>
 
       {error ? (
-        <div className="rounded-lg border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-300">
-          <p className="font-semibold">Veri yüklenemedi.</p>
-          <p className="mt-1 text-red-400/80">{error}</p>
-          <p className="mt-2 text-red-400/60">
-            Supabase ortam değişkenlerinin (NEXT_PUBLIC_SUPABASE_URL /
-            NEXT_PUBLIC_SUPABASE_ANON_KEY) doğru ayarlandığını kontrol edin.
+        <div className="glass glass-sheen rounded-2xl border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+          <p className="font-semibold">Failed to load data.</p>
+          <p className="mt-1 text-red-300/80">{error}</p>
+          <p className="mt-2 text-red-300/60">
+            Check that the Supabase environment variables
+            (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY) are set
+            correctly.
           </p>
         </div>
       ) : tokens.length === 0 ? (
-        <div className="rounded-lg border border-border bg-surface p-8 text-center text-slate-400">
-          <p className="font-medium">Gösterilecek token yok.</p>
-          <p className="mt-1 text-sm text-slate-500">
-            Scraper henüz çalışmadıysa GitHub Actions iş akışını manuel
-            tetikleyebilir (workflow_dispatch) ya da saatlik cron'u
-            bekleyebilirsiniz.
+        <div className="glass glass-sheen rounded-2xl p-8 text-center text-slate-300">
+          <p className="font-medium">No tokens to show.</p>
+          <p className="mt-1 text-sm text-slate-400">
+            If the scraper hasn&apos;t run yet, trigger the GitHub Actions
+            workflow manually (workflow_dispatch) or wait for the hourly cron.
           </p>
         </div>
       ) : (
         <Dashboard tokens={tokens} />
       )}
 
-      <footer className="mt-8 border-t border-border pt-4 text-center text-xs text-slate-600">
-        Veriler yatırım tavsiyesi değildir. Kaynak: DexScreener &amp; RugCheck
-        public API.
+      <footer className="mt-8 border-t border-white/10 pt-4 text-center text-xs text-slate-500">
+        Not financial advice. Data source: DexScreener &amp; RugCheck public API.
       </footer>
     </main>
   );
