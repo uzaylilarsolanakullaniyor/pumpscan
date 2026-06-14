@@ -51,12 +51,12 @@ async function main() {
 
   // --- 1) Adayları topla ----------------------------------------------------
   const addressSet = await dex.collectCandidateAddresses();
-  const searchPairs = await dex.searchSolanaPairs(addressSet);
+  const searchResults = await dex.searchPairs(addressSet);
 
   // search'ten gelen pair'ler için tekrar tokens çağrısı yapmamak adına
   // bunları doğrudan kullanırız. Kalan adresler için tokens ucunu çağırırız.
   const pairsByMint = new Map();
-  for (const p of searchPairs) {
+  for (const p of searchResults) {
     if (!pairsByMint.has(p.mintAddress)) pairsByMint.set(p.mintAddress, p);
   }
 

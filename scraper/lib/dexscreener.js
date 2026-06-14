@@ -45,28 +45,41 @@ async function collectCandidateAddresses() {
 }
 
 /**
- * search ucundan doğrudan trend pair'leri toplar. Bu uç pair verisini
- * tam olarak döndürdüğü için sonuçları normalize edip geri veririz; ek olarak
- * keşfedilen yeni adresleri de aday kümesine ekleriz.
+ * search ucunu BİRDEN ÇOK sorguyla çağırarak geniş bir trend pair havuzu
+ * toplar (config.search.queries). Bu uç pair verisini tam döndürdüğü için
+ * sonuçları normalize edip benzersizleştirir; keşfedilen adresleri de aday
+ * kümesine ekler. Böylece yalnızca "solana" değil, popüler quote/sembollere
+ * (SOL, USDC, raydium, pump, bonk…) bağlı tokenlar da yakalanır.
  */
-async function searchSolanaPairs(addressSet) {
-  const pairs = [];
-  try {
-    const data = await fetchJson(`${BASE}/latest/dex/search?q=solana`);
-    for (const pair of data?.pairs || []) {
-      if (pair?.chainId !== SOLANA) continue;
-      const normalized = normalizePair(pair);
-      if (normalized) {
-        pairs.push(normalized);
-        addressSet.add(normalized.mintAddress);
+async function searchPairs(addressSet) {
+  const byMint = new Map();
+  const queries = config.search.queries;
+
+  for (const q of queries) {
+    try {
+      const data = await fetchJson(
+        `${BASE}/latest/dex/search?q=${encodeURIComponent(q)}`,
+      );
+      let added = 0;
+      for (const pair of data?.pairs || []) {
+        if (pair?.chainId !== SOLANA) continue;
+        const normalized = normalizePair(pair);
+        if (normalized && !byMint.has(normalized.mintAddress)) {
+          byMint.set(normalized.mintAddress, normalized);
+          addressSet.add(normalized.mintAddress);
+          added++;
+        }
       }
+      logger.info(
+        `search?q=${q} → +${added} yeni (toplam ${byMint.size} benzersiz)`,
+      );
+    } catch (err) {
+      logger.warn(`search ucu hatası (q=${q}): ${err.message}`);
     }
-    logger.info(`search?q=solana → ${pairs.length} pair`);
-  } catch (err) {
-    logger.warn(`search ucu hatası: ${err.message}`);
+    await sleep(config.rateLimit.dexscreenerMs);
   }
-  await sleep(config.rateLimit.dexscreenerMs);
-  return pairs;
+
+  return [...byMint.values()];
 }
 
 /** Bir token adresi için en likit Solana pair'ini getirir. */
@@ -109,7 +122,7 @@ function normalizePair(pair) {
 
 module.exports = {
   collectCandidateAddresses,
-  searchSolanaPairs,
+  searchPairs,
   fetchBestPairForToken,
   normalizePair,
 };

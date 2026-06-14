@@ -49,7 +49,33 @@ module.exports = {
   // --- Genel ----------------------------------------------------------------
   // Tek bir taramada RugCheck'e sorulacak maksimum token sayısı (rate limit
   // ve süre koruması). En likit/hacimli adaylar önceliklidir.
-  maxTokensPerRun: envNumber('MAX_TOKENS_PER_RUN', 120),
+  maxTokensPerRun: envNumber('MAX_TOKENS_PER_RUN', 150),
+
+  // --- Token bulma (discovery) ----------------------------------------------
+  // DexScreener search ucuna gönderilecek sorgular. Aday havuzunu genişletmek
+  // için birden çok terim kullanılır; her sorgu ~30 pair döndürebilir.
+  // SEARCH_QUERIES ortam değişkeniyle (virgülle ayrılmış) override edilebilir.
+  search: {
+    queries: process.env.SEARCH_QUERIES
+      ? process.env.SEARCH_QUERIES.split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [
+          'solana',
+          'SOL',
+          'USDC',
+          'WSOL',
+          'USDT',
+          'raydium',
+          'pump',
+          'bonk',
+          'wif',
+          'meme',
+          'AI',
+          'cat',
+          'dog',
+        ],
+  },
 
   // HTTP istekleri için yeniden deneme sayısı ve timeout.
   http: {
