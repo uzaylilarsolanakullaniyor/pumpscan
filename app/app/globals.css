@@ -4,59 +4,92 @@
 
 :root {
   color-scheme: dark;
+  background: #080a0f;
 }
 
-html,
+html {
+  min-width: 320px;
+  background: #080a0f;
+}
+
 body {
-  background-color: #05060a;
-  color: #e8ecf4;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(19, 72, 80, 0.24), transparent 34rem),
+    radial-gradient(circle at 88% 5%, rgba(72, 33, 93, 0.2), transparent 32rem),
+    #080a0f;
+  color: #e9eef6;
+  font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+button,
+a,
+select,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(52, 211, 153, 0.28);
+  color: #ffffff;
+}
+
 @layer components {
-  /* Liquid-glass yüzey: yarı saydam + arka plan bulanıklığı + ince kenar */
-  .glass {
-    @apply border border-white/10 bg-white/[0.04] shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-xl backdrop-saturate-150;
+  .terminal-panel {
+    @apply border border-white/[0.08] bg-[#10131a]/90 shadow-[0_20px_60px_rgba(0,0,0,0.32)];
   }
-  .glass-strong {
-    @apply border border-white/15 bg-white/[0.07] shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-2xl backdrop-saturate-150;
+
+  .terminal-panel-soft {
+    @apply border border-white/[0.07] bg-white/[0.025];
   }
-  /* Camın üstündeki ince ışık çizgisi (highlight) */
-  .glass-sheen {
+
+  .terminal-grid {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.026) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.026) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .scan-line {
     position: relative;
+    overflow: hidden;
   }
-  .glass-sheen::before {
-    content: '';
+
+  .scan-line::after {
+    content: "";
     position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.18),
-      rgba(255, 255, 255, 0) 40%
-    );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
+    left: -10%;
+    right: -10%;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(52,211,153,0.58), transparent);
+    animation: scan 5s linear infinite;
     pointer-events: none;
   }
 }
 
-/* İnce, koyu temaya uygun scrollbar */
+@keyframes scan {
+  from { transform: translateY(-8px); opacity: 0; }
+  8% { opacity: 1; }
+  72% { opacity: 0.7; }
+  to { transform: translateY(580px); opacity: 0; }
+}
+
 ::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  width: 9px;
+  height: 9px;
 }
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(255,255,255,0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(255,255,255,0.13);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.22);
 }
